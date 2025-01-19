@@ -31,12 +31,11 @@ const AuthContext = createContext({
 })
 
 const AuthProvider = ({ children }) => {
-
   const discovery = {
     authorizationEndpoint: `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/auth`,
     tokenEndpoint: `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/token`,
     userInfoEndpoint: `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/userinfo`,
-  };
+  }
 
   // @ts-ignore
   const redirectUri = makeRedirectUri()
@@ -71,9 +70,9 @@ const AuthProvider = ({ children }) => {
           },
         }
       case 'SIGN_OUT':
-        return {
-          initialState,
-        }
+        return initialState
+      default:
+        return previousState
     }
   }, initialState)
 
@@ -89,7 +88,6 @@ const AuthProvider = ({ children }) => {
           await fetch(
             `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/logout?id_token_hint=${idToken}`
           )
-          // @ts-ignore
           dispatch({ type: 'SIGN_OUT' })
         } catch (e) {
           console.warn(e)
@@ -99,7 +97,13 @@ const AuthProvider = ({ children }) => {
        * @param {String} role
        * @returns Boolean
        */
-hasRole: (role) => Array.isArray(authState.userInfo?.roles) && authState.userInfo.roles.indexOf(role) !== -1,
+      hasRole: (role) => {
+        console.log('User roles:', authState.userInfo?.roles)
+        return (
+          Array.isArray(authState.userInfo?.roles) &&
+          authState.userInfo.roles.indexOf(role) !== -1
+        )
+      },
     }),
     [authState, promptAsync]
   )
@@ -117,12 +121,12 @@ hasRole: (role) => Array.isArray(authState.userInfo?.roles) && authState.userInf
           code_verifier: codeVerifier,
           redirect_uri: redirectUri,
         }
-        const formBody = []
-        for (const property in formData) {
-          var encodedKey = encodeURIComponent(property)
-          var encodedValue = encodeURIComponent(formData[property])
-          formBody.push(encodedKey + '=' + encodedValue)
-        }
+        const formBody = Object.keys(formData)
+          .map(
+            (key) =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(formData[key])}`
+          )
+          .join('&')
 
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/token`,
@@ -132,18 +136,18 @@ hasRole: (role) => Array.isArray(authState.userInfo?.roles) && authState.userInf
               Accept: 'application/json',
               'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: formBody.join('&'),
+            body: formBody,
           }
         )
         if (response.ok) {
           const payload = await response.json()
-          // @ts-ignore
           dispatch({ type: 'SIGN_IN', payload })
         }
       } catch (e) {
         console.warn(e)
       }
     }
+
     if (response?.type === 'success') {
       const { code } = response.params
       getToken({
@@ -162,38 +166,36 @@ hasRole: (role) => Array.isArray(authState.userInfo?.roles) && authState.userInf
   useEffect(() => {
     const getUserInfo = async () => {
       try {
-        const accessToken = authState.accessToken
+        const accessToken = authState.accessToken;
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/userinfo`,
           {
             method: 'GET',
             headers: {
-              Authorization: 'Bearer ' + accessToken,
+              Authorization: `Bearer ${accessToken}`,
               Accept: 'application/json',
             },
           }
-        )
+        );
         if (response.ok) {
-          const payload = await response.json()
-          // @ts-ignore
-          dispatch({ type: 'USER_INFO', payload })
+          const payload = await response.json();
+          console.log('User Info Payload:', payload); // <-- Registra toda la respuesta
+          dispatch({ type: 'USER_INFO', payload });
+        } else {
+          console.warn('Failed to fetch user info:', response.status);
         }
       } catch (e) {
-        console.warn(e)
+        console.warn('Error fetching user info:', e);
       }
-    }
+    };
+    
     if (authState.isSignedIn) {
       getUserInfo()
     }
   }, [authState.accessToken, authState.isSignedIn, dispatch])
 
   return (
-    <AuthContext.Provider
-      // @ts-ignore
-      value={authContext}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>
   )
 }
 

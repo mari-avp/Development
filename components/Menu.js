@@ -9,19 +9,17 @@ const Menu = () => {
 
   return (
     <View style={styles.container}>
-      {hasRole('Manager') && (
+      {hasRole('Conductor') ? (
         <Button
-          onPress={() => navigation.navigate('Manager')}
-          title={'Manager'}
+          onPress={() => navigation.navigate('Dashboard')}
+          title={'Dashboard'}
+        />
+      ) : (
+        <Button
+          onPress={() => navigation.navigate('ErrorPage')}
+          title={'ErrorPage'}
         />
       )}
-      {hasRole('IC') && (
-        <Button onPress={() => navigation.navigate('IC')} title={'IC'} />
-      )}
-      <Button
-        onPress={() => navigation.navigate('Profile')}
-        title={'Profile'}
-      />
     </View>
   )
 }

@@ -22,10 +22,16 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.marianvelez.rnexpooauthauthorizationcodeflowpkcekeycloak"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "26c55747-4a42-41e9-a787-6b5870cf83ec"
+      }
     }
   }
 }
