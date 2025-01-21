@@ -4,7 +4,7 @@
     "slug": "rn-expo-oauth-authorization-code-flow-pkce-keycloak",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -12,9 +12,7 @@
       "backgroundColor": "#ffffff"
     },
     "scheme": "rn-expo-app",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true
     },
@@ -22,6 +20,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBmT7bdEHu5AqCFLrtjnO16u8WO7CtNCcc"
+        }
       },
       "package": "com.marianvelez.rnexpooauthauthorizationcodeflowpkcekeycloak"
     },

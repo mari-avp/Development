@@ -1,37 +1,104 @@
-import React from 'react'
-import Background from '../amparito/Background'
-import Header from '../amparito/Header'
-import Button from '../amparito/Button'
-import Logo from '../amparito/Logo'
-import { Text, View, StyleSheet } from 'react-native'
+import React, { useContext, useEffect, useState } from 'react'
+import { View, Text, StyleSheet } from 'react-native'
+import axios from 'axios'
+import { AuthContext } from '../context/AuthContext'
+import Background from '../ui/Background'
+import Logo from '../ui/Logo'
+import Header from '../ui/Header'
+import Button from '../ui/Button'
 
-export default function Perfil({ navigation }) {
-  const grueroInfo = {
-    nombre: 'Juan Pérez',
-    teléfono: '+58 123 456 789',
-    email: 'juanperez@example.com',
-    licencia: 'ABC-12345',
+const Perfil = ({ navigation }) => {
+  // Recibe `navigation` como prop
+  const { getConductorId, isLoadingConductorId } = useContext(AuthContext)
+  const [clientData, setClientData] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    const fetchClientData = async () => {
+      try {
+        if (isLoadingConductorId) {
+          console.log('Esperando a que el conductorId esté disponible...')
+          return
+        }
+
+        const conductorId = getConductorId()
+        console.log(
+          'Valor de conductorId obtenido con getConductorId:',
+          conductorId
+        )
+
+        if (!conductorId) {
+          throw new Error('El conductorId no está disponible.')
+        }
+
+        console.log(
+          'Enviando solicitud al endpoint /Conductor/{id} con conductorId:',
+          conductorId
+        )
+
+        const clientResponse = await axios.get(
+          `https://f8b4-2a0d-5600-4f-7000-29f2-3ec5-bdd0-7fe0.ngrok-free.app/api/Conductor/${conductorId}`
+        )
+
+        console.log('Datos del cliente obtenidos:', clientResponse.data)
+        setClientData(clientResponse.data)
+      } catch (err) {
+        console.error('Error al obtener datos del cliente:', err.message)
+        setError(err.message || 'Error desconocido')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchClientData()
+  }, [getConductorId, isLoadingConductorId])
+
+  if (loading || isLoadingConductorId) {
+    return (
+      <Background>
+        <Text>Cargando información del cliente...</Text>
+      </Background>
+    )
+  }
+
+  if (error) {
+    return (
+      <Background>
+        <Text>Error: {error}</Text>
+        <Button title="Volver" onPress={() => navigation.goBack()} />
+      </Background>
+    )
   }
 
   return (
     <Background>
       <Logo />
-      <Header>Perfil del Gruero</Header>
-
+      <Header>Información del Cliente</Header>
       <View style={styles.container}>
         <Text style={styles.label}>Nombre:</Text>
-        <Text style={styles.value}>{grueroInfo.nombre}</Text>
+        <Text style={styles.value}>{clientData?.nombre || 'N/A'}</Text>
+
+        <Text style={styles.label}>Apellido:</Text>
+        <Text style={styles.value}>{clientData?.apellido || 'N/A'}</Text>
 
         <Text style={styles.label}>Teléfono:</Text>
-        <Text style={styles.value}>{grueroInfo.teléfono}</Text>
+        <Text style={styles.value}>{clientData?.telefono || 'N/A'}</Text>
 
-        <Text style={styles.label}>Email:</Text>
-        <Text style={styles.value}>{grueroInfo.email}</Text>
+        <Text style={styles.label}>Documento de Identidad:</Text>
+        <Text style={styles.value}>
+          {clientData?.documentoIdentidad || 'N/A'}
+        </Text>
 
         <Text style={styles.label}>Licencia:</Text>
-        <Text style={styles.value}>{grueroInfo.licencia}</Text>
-      </View>
+        <Text style={styles.value}>{clientData?.licencia || 'N/A'}</Text>
 
+        <Text style={styles.label}>Proveedor ID:</Text>
+        <Text style={styles.value}>{clientData?.proveedorId || 'N/A'}</Text>
+
+        <Text style={styles.label}>Activo:</Text>
+        <Text style={styles.value}>{clientData?.activo ? 'Sí' : 'No'}</Text>
+      </View>
       <Button mode="contained" onPress={() => navigation.goBack()}>
         Volver
       </Button>

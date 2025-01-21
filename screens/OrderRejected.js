@@ -1,8 +1,8 @@
 import React from 'react'
-import Background from '../amparito/Background'
-import Header from '../amparito/Header'
-import Button from '../amparito/Button'
-import Logo from '../amparito/Logo'
+import Background from '../ui/Background'
+import Header from '../ui/Header'
+import Button from '../ui/Button'
+import Logo from '../ui/Logo'
 import { FlatList, Text, StyleSheet, View } from 'react-native'
 
 export default function OrderRejected({ navigation }) {

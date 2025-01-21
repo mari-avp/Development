@@ -1,10 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, FlatList, StyleSheet } from 'react-native'
-import Background from '../amparito/Background'
-import Header from '../amparito/Header'
-import Button from '../amparito/Button'
+import Background from '../ui/Background'
+import Header from '../ui/Header'
+import Button from '../ui/Button'
 import { db } from '../firebase'
-import { collection, query, onSnapshot } from 'firebase/firestore'
+import {
+  collection,
+  query,
+  onSnapshot,
+  updateDoc,
+  doc,
+} from 'firebase/firestore'
 
 export default function Notification({ navigation }) {
   const [notifications, setNotifications] = useState([])
@@ -21,8 +27,25 @@ export default function Notification({ navigation }) {
     return () => unsubscribe()
   }, [])
 
-  const markAsRead = (id) => {
-    alert(`Notificación ${id} marcada como leída`)
+  const markAsRead = async (id) => {
+    try {
+      // Actualizar en Firebase
+      const notificationRef = doc(db, 'notificationes', id)
+      await updateDoc(notificationRef, { read: true })
+
+      // Actualizar el estado local
+      setNotifications((prevNotifications) =>
+        prevNotifications.map((notification) =>
+          notification.id === id
+            ? { ...notification, read: true }
+            : notification
+        )
+      )
+      alert(`Notificación ${id} marcada como leída`)
+    } catch (error) {
+      console.error('Error al marcar como leída:', error)
+      alert('Hubo un problema al marcar la notificación como leída.')
+    }
   }
 
   const renderNotification = ({ item }) => (
@@ -39,6 +62,7 @@ export default function Notification({ navigation }) {
           mode="contained"
           onPress={() => markAsRead(item.id)}
           style={styles.smallButton}
+          labelStyle={styles.smallButtonText}
         >
           Marcar como leído
         </Button>
@@ -61,6 +85,7 @@ export default function Notification({ navigation }) {
         mode="contained"
         onPress={() => navigation.goBack()}
         style={styles.backButton}
+        labelStyle={styles.backButtonText}
       >
         Volver
       </Button>
@@ -73,21 +98,21 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   card: {
-    backgroundColor: '#fff',
-    padding: 16,
+    backgroundColor: '#ffffff',
+    padding: 10,
     borderRadius: 10,
-    marginBottom: 16,
+    marginBottom: 15,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#e0e0e0',
     shadowColor: '#000',
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 6,
+    elevation: 3,
   },
   cardRead: {
-    backgroundColor: '#f9f9f9',
-    borderColor: '#ddd',
+    backgroundColor: '#f0f0f0',
+    borderColor: '#d4d4d4',
   },
   cardHeader: {
     flexDirection: 'row',
@@ -95,26 +120,49 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 20, // Título más grande
+    fontWeight: '700',
+    color: '#2c3e50',
   },
   textRead: {
-    color: '#aaa',
+    color: '#95a5a6',
     textDecorationLine: 'line-through',
   },
+  description: {
+    fontSize: 14,
+    color: '#7f8c8d',
+    marginVertical: 4,
+  },
+  message: {
+    fontSize: 16,
+    color: '#34495e',
+    marginVertical: 8,
+  },
   smallButton: {
-    marginTop: 10,
+    marginTop: 8,
     alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    fontSize: 12,
+    paddingVertical: 4, // Botón más pequeño
+    paddingHorizontal: 8,
+    borderRadius: 6,
+  },
+  smallButtonText: {
+    fontSize: 12, // Texto del botón más pequeño
+    color: '#fff',
+    fontWeight: '500',
   },
   backButton: {
     marginTop: 20,
     alignSelf: 'center',
     width: '50%',
+    paddingVertical: 12,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 16,
+    color: '#ffffff',
+    fontWeight: '600',
   },
 })
-
 export { Notification }

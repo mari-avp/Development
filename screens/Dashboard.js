@@ -1,16 +1,17 @@
 import React, { useState, useContext } from 'react'
-import { View, Text, Pressable, StyleSheet } from 'react-native'
-import Background from '../amparito/Background'
-import Logo from '../amparito/Logo'
-import Header from '../amparito/Header'
-import Button from '../amparito/Button'
+import { View, Text, Pressable, StyleSheet, Alert } from 'react-native'
+import Background from '../ui/Background'
+import Logo from '../ui/Logo'
+import Header from '../ui/Header'
+import Button from '../ui/Button'
 import { useNavigation } from '@react-navigation/native'
 import { AuthContext } from '../context/AuthContext' // Ajusta la ruta según sea necesario
+import { theme } from '../core/theme'
 
 export default function Dashboard({ navigation }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  const { signOut } = useContext(AuthContext)
+  const { signOut, state, getUserId } = useContext(AuthContext) // Accede al contexto
 
   const handleLogout = async () => {
     try {
@@ -24,6 +25,7 @@ export default function Dashboard({ navigation }) {
       Alert.alert('Error', 'No se pudo cerrar la sesión. Inténtelo de nuevo.')
     }
   }
+
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
   }
@@ -39,7 +41,11 @@ export default function Dashboard({ navigation }) {
       <Header>Dashboard General</Header>
 
       {/* Botón para abrir/cerrar menú */}
-      <Button mode="outlined" onPress={toggleMenu}>
+      <Button
+        mode="outlined"
+        onPress={toggleMenu}
+        style={[{ marginTop: 20 }, styles.buttonStyle]}
+      >
         Opciones
       </Button>
 
@@ -47,21 +53,21 @@ export default function Dashboard({ navigation }) {
       {isMenuOpen && (
         <View style={styles.menu}>
           <Pressable
-            style={styles.menuItem}
+            style={[styles.menuItem, styles.menuItemButton]}
             onPress={() => handleNavigate('OrderComplete')}
           >
             <Text style={styles.menuItemText}>Order Complete</Text>
           </Pressable>
 
           <Pressable
-            style={styles.menuItem}
+            style={[styles.menuItem, styles.menuItemButton]}
             onPress={() => handleNavigate('OrderRejected')}
           >
             <Text style={styles.menuItemText}>Order Rejected</Text>
           </Pressable>
 
           <Pressable
-            style={styles.menuItem}
+            style={[styles.menuItem, styles.menuItemButton]}
             onPress={() => handleNavigate('OrderProcess')}
           >
             <Text style={styles.menuItemText}>Order Process</Text>
@@ -73,7 +79,7 @@ export default function Dashboard({ navigation }) {
       <Button
         mode="outlined"
         onPress={() => navigation.navigate('Perfil')}
-        style={{ marginTop: 20 }}
+        style={[{ marginTop: 20 }, styles.buttonStyle]}
       >
         Perfil
       </Button>
@@ -82,7 +88,7 @@ export default function Dashboard({ navigation }) {
       <Button
         mode="outlined"
         onPress={() => navigation.navigate('Notification')}
-        style={{ marginTop: 20 }}
+        style={[{ marginTop: 20 }, styles.buttonStyle]}
       >
         Notificaciones
       </Button>
@@ -91,9 +97,17 @@ export default function Dashboard({ navigation }) {
       <Button
         mode="outlined"
         onPress={() => navigation.navigate('ServiceOrder')}
-        style={{ marginTop: 20 }}
+        style={[{ marginTop: 20 }, styles.buttonStyle]}
       >
         Órdenes de Servicio
+      </Button>
+
+      <Button
+        mode="outlined"
+        onPress={() => navigation.navigate('LocationScreen')}
+        style={[{ marginTop: 20 }, styles.buttonStyle]}
+      >
+        Actualizar Ubi
       </Button>
 
       {/* Botón para cerrar sesión */}
@@ -106,24 +120,58 @@ export default function Dashboard({ navigation }) {
 
 const styles = StyleSheet.create({
   menu: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
+    backgroundColor: '#ffffff',
+    borderRadius: 16, // Bordes redondeados
+    padding: 16, // Espaciado interno
     marginTop: 10,
-    padding: 10,
-    width: 200,
-    position: 'absolute',
-    zIndex: 1000, // Para asegurarte de que aparezca por encima de otros elementos
+    width: '90%', // Ocupa un porcentaje del ancho de la pantalla
+    alignSelf: 'center', // Centra el menú en la pantalla
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6, // Sombra en Android
   },
   menuItem: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    // 'cursor: pointer' no existe en RN. Para un efecto "clickable",
-    // Pressable/TouachableOpacity manejan la interactividad.
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10, // Bordes redondeados en los elementos del menú
+    marginBottom: 10, // Espacio entre elementos
+    backgroundColor: theme.colors.primary, // Fondo claro para los botones
+  },
+  menuItemButton: {
+    backgroundColor: theme.colors.primary, // Fondo azul moderno
   },
   menuItemText: {
     fontSize: 16,
+    color: '#ffffff', // Texto blanco
+    fontWeight: '600',
+    textAlign: 'center', // Centra el texto
+  },
+  buttonStyle: {
+    justifyContent: 'center', // Centra el contenido verticalmente
+    alignItems: 'center', // Centra el contenido horizontalmente
+    paddingVertical: 12, // Espacio suficiente verticalmente
+    paddingHorizontal: 20, // Espacio suficiente horizontalmente
+    width: '80%', // Botón más ancho y centrado
+    alignSelf: 'center', // Centra el botón en el contenedor
+    borderRadius: 12, // Bordes redondeados para estética moderna
+    marginVertical: 10, // Espaciado uniforme entre botones
+  },
+  containedButton: {
+    backgroundColor: '#3498db', // Color del botón contenido
+  },
+  containedButtonText: {
+    fontSize: 16,
+    color: '#fff', // Texto blanco para botones contenidos
+    fontWeight: 'bold',
+    textAlign: 'center', // Centra el texto
+  },
+  outlinedButtonText: {
+    fontSize: 16,
+    color: '#3498db', // Color del texto en botones outlined
+    fontWeight: 'bold',
+    textAlign: 'center', // Centra el texto
   },
 })
 

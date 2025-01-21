@@ -7,10 +7,7 @@ export default function Background({ children }) {
     <ImageBackground
       source={require('../assets/background_dot.png')}
       resizeMode="repeat"
-      style={[
-        styles.background,
-        { borderWidth: 1, borderColor: 'red' }, // Borde rojo para ver los límites
-      ]}
+      style={[styles.background]}
     >
       <KeyboardAvoidingView style={styles.container} behavior="padding">
         {children}

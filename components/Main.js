@@ -14,7 +14,7 @@ import { Notification } from '../screens/Notification'
 import { ServiceOrder } from '../screens/ServiceOrder'
 import { AddCost } from '../screens/AddCost'
 import { ErrorPage } from '../screens/ErrorPage' // Importa la página de error
-import { Location } from '../screens/Location' // Importa la página de error
+import { LocationScreen } from '../screens/LocationScreen'
 
 const NativeStack = createNativeStackNavigator()
 
@@ -52,8 +52,10 @@ const Main = () => {
                   component={ServiceOrder}
                 />
                 <NativeStack.Screen name="AddCost" component={AddCost} />
-                <NativeStack.Screen name="Location" component={Location} />
-                <NativeStack.Screen name="ErrorPage " component={ErrorPage} />
+                <NativeStack.Screen
+                  name="LocationScreen"
+                  component={LocationScreen}
+                />
               </>
             ) : (
               // Si el rol no coincide, redirige a la página de error

@@ -1,5 +1,11 @@
 // @ts-check
-import React, { createContext, useEffect, useMemo, useReducer } from 'react'
+import React, {
+  createContext,
+  useEffect,
+  useState,
+  useMemo,
+  useReducer,
+} from 'react'
 import {
   makeRedirectUri,
   useAuthRequest,
@@ -16,17 +22,20 @@ const initialState = {
   accessToken: null,
   idToken: null,
   userInfo: null,
+  conductorId: null, // Campo para almacenar el conductorId
 }
 
 const AuthContext = createContext({
   state: initialState,
   signIn: () => {},
   signOut: () => {},
+  getUserId: () => null,
+  getConductorId: () => null, // Nueva función para obtener el conductorId
+  isLoadingConductorId: true, // Estado para indicar si el conductorId está cargando
   /**
    * @param {String} role
    * @returns Boolean
    */
-  // eslint-disable-next-line no-unused-vars
   hasRole: (role) => false,
 })
 
@@ -37,11 +46,9 @@ const AuthProvider = ({ children }) => {
     userInfoEndpoint: `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/userinfo`,
   }
 
-  // @ts-ignore
   const redirectUri = makeRedirectUri()
   const [request, response, promptAsync] = useAuthRequest(
     {
-      // @ts-ignore
       clientId: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID,
       redirectUri: redirectUri,
       scopes: ['openid', 'profile'],
@@ -69,12 +76,20 @@ const AuthProvider = ({ children }) => {
             roles: action.payload.roles || [], // Default to an empty array
           },
         }
+      case 'SET_CONDUCTOR_ID':
+        return {
+          ...previousState,
+          conductorId: action.payload, // Guardar conductorId
+        }
       case 'SIGN_OUT':
         return initialState
       default:
         return previousState
     }
   }, initialState)
+
+  const [userId, setUserId] = useState(null) // Estado para el userId (sub)
+  const [isLoadingConductorId, setIsLoadingConductorId] = useState(true) // Estado de carga para conductorId
 
   const authContext = useMemo(
     () => ({
@@ -89,10 +104,14 @@ const AuthProvider = ({ children }) => {
             `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/logout?id_token_hint=${idToken}`
           )
           dispatch({ type: 'SIGN_OUT' })
+          setUserId(null) // Limpia el ID del usuario al cerrar sesión
         } catch (e) {
           console.warn(e)
         }
       },
+      getUserId: () => userId, // Proporciona el userId
+      getConductorId: () => authState.conductorId, // Proporciona el conductorId
+      isLoadingConductorId, // Proporciona el estado de carga de conductorId
       /**
        * @param {String} role
        * @returns Boolean
@@ -105,7 +124,7 @@ const AuthProvider = ({ children }) => {
         )
       },
     }),
-    [authState, promptAsync]
+    [authState, promptAsync, userId, isLoadingConductorId]
   )
 
   /**
@@ -161,12 +180,13 @@ const AuthProvider = ({ children }) => {
   }, [dispatch, redirectUri, request?.codeVerifier, response])
 
   /**
-   * Get user-info when signing in completed
+   * Get user-info and conductorId when signing in completed
    */
   useEffect(() => {
-    const getUserInfo = async () => {
+    const getUserInfoAndConductorId = async () => {
       try {
-        const accessToken = authState.accessToken;
+        setIsLoadingConductorId(true) // Inicia la carga del conductorId
+        const accessToken = authState.accessToken
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/userinfo`,
           {
@@ -176,23 +196,47 @@ const AuthProvider = ({ children }) => {
               Accept: 'application/json',
             },
           }
-        );
+        )
+
         if (response.ok) {
-          const payload = await response.json();
-          console.log('User Info Payload:', payload); // <-- Registra toda la respuesta
-          dispatch({ type: 'USER_INFO', payload });
+          const payload = await response.json()
+          console.log('User Info Payload:', payload)
+          setUserId(payload.sub) // Almacena el userId (sub)
+          dispatch({ type: 'USER_INFO', payload })
+
+          // Fetch conductorId usando el userId (sub)
+          console.log('Fetching conductorId using userId:', payload.sub)
+          const conductorResponse = await fetch(
+            `https://f8b4-2a0d-5600-4f-7000-29f2-3ec5-bdd0-7fe0.ngrok-free.app/api/Conductor/conductor/id-by-sub/${payload.sub}`
+          )
+
+          if (conductorResponse.ok) {
+            const conductorData = await conductorResponse.json()
+            console.log('ConductorId obtenido:', conductorData.conductorId)
+            dispatch({
+              type: 'SET_CONDUCTOR_ID',
+              payload: conductorData.conductorId,
+            })
+          } else {
+            console.warn(
+              'Error al obtener conductorId:',
+              conductorResponse.status
+            )
+          }
         } else {
-          console.warn('Failed to fetch user info:', response.status);
+          console.warn('Failed to fetch user info:', response.status)
         }
       } catch (e) {
-        console.warn('Error fetching user info:', e);
+        console.warn('Error fetching user info or conductorId:', e)
+      } finally {
+        setIsLoadingConductorId(false) // Finaliza la carga del conductorId
       }
-    };
-    
-    if (authState.isSignedIn) {
-      getUserInfo()
     }
-  }, [authState.accessToken, authState.isSignedIn, dispatch])
+
+    if (authState.isSignedIn) {
+      getUserInfoAndConductorId()
+    }
+  }, [authState.isSignedIn, authState.accessToken, dispatch])
 
   return (
     <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>

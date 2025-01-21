@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { TextInput, StyleSheet, View, Alert } from 'react-native'
-import Background from '../amparito/Background'
-import Header from '../amparito/Header'
-import Button from '../amparito/Button'
+import Background from '../ui/Background'
+import Header from '../ui/Header'
+import Button from '../ui/Button'
 //importar firebase
 import appFirebase from '../firebase'
 import {
