@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "rn-expo-oauth-authorization-code-flow-pkce-keycloak",
+    "slug": "rn-expo-oauth-authorization-code-flow-pkce-keycloak",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/logo.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "scheme": "rn-expo-app",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBmT7bdEHu5AqCFLrtjnO16u8WO7CtNCcc"
+        }
+      },
+      "package": "com.marianvelez.rnexpooauthauthorizationcodeflowpkcekeycloak"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "26c55747-4a42-41e9-a787-6b5870cf83ec"
+      }
+    }
+  }
+}
